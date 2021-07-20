@@ -7,7 +7,7 @@ Some potential applications for ideas presented in this project:
  - Reuse/extend DTL transformations in other FHIR databases for custom ML models
  - Use DTL transformations for normalize FHIR messages and publish ML models as services
 
-# Demonstration
+## Demonstration
 In order to demonstrate the project concept, a appointment no-show prediction model was set up.
 
 First, a training dataset was used to generate syntetic FHIR resources. This dataset has information about patients, conditions, appointments and reminders sent to patients - represented by different FHIR resources. This step emulates a true FHIR database, where no-show prediction could be applied. This is done in instalation by this command:
