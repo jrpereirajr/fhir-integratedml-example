@@ -10,7 +10,7 @@ Some potential applications for ideas presented in this project:
 ## Demonstration
 In order to demonstrate the project concept, a appointment no-show prediction model was set up.
 
-First, a training dataset was used to generate syntetic FHIR resources. This dataset has information about patients, conditions, appointments and reminders sent to patients - represented by different FHIR resources. This step emulates a true FHIR database, where no-show prediction could be applied. This is done in instalation by this command:
+First, a training dataset was used to generate syntetic FHIR resources. This dataset has information about patients, conditions, appointments and reminders sent to patients - represented by different FHIR resources. This step emulates a true FHIR database, where no-show prediction could be applied. This is done by this command (which is already executed in instalation script, so you don't need to run it again):
 
 ```objectscript
 Write "Generating FHIR data based on training dataset...",!
@@ -21,11 +21,11 @@ With the FHIR database ready to use, data need to be transformed by combining th
 
 todo: DTL image
 
-Such DTL could be invoked by this command (which is executed in installation):
+Such DTL could be invoked by this command (which is also executed by installation script):
 
 ```objectscript
-Write "Apllying DTL transformation on FHIR data to ML dataset generation"
-ZWrite ##class(PackageSample.FHIRNoShowETL).%New().Execute()
+Set source = ##class(HSFHIR.X0001.S.Patient).%OpenId(patientId)
+$$$TOE(sc, ##class(PackageSample.NoShowDTL).Transform(source, .target))
 ```
 
 After applying the DTL trasnformation, FHIR resources are mapped to a single row, creating a table which could be used to train a ML model for no-show prediction. Follow these steps to see the ML model creation:
