@@ -29,9 +29,9 @@ zpm "install sqlbuilder"
 
 Write "Importing no-show training dataset...",!
 zw ##class(community.csvgen).Generate("/opt/irisapp/traindata/appointment-noshows.csv", ",", "Data.AppointmentNoShow","Gender VARCHAR(250),ScheduledDay TIMESTAMP,AppointmentDay TIMESTAMP,Age INTEGER,Neighborhood VARCHAR(250),Scholarship BIT,Hypertension BIT,Diabetes BIT,Alcoholism BIT,Handicap BIT,SMS_received BIT,Noshow BIT")
-#; Write "Generating FHIR data based on training dataset...",!
-#; zw ##class(PackageSample.PopulateNoShow).%New().Populate(2000)
-#; Write "Apllying DTL transformation on FHIR data to ML dataset generation"
-#; Do ##class(PackageSample.FHIRNoShowETL).%New().Execute()
+Write "Generating FHIR data based on training dataset...",!
+ZWrite ##class(PackageSample.PopulateNoShow).%New().Populate(2000)
+Write "Apllying DTL transformation on FHIR data to ML dataset generation"
+ZWrite ##class(PackageSample.FHIRNoShowETL).%New().Execute()
 
 halt
