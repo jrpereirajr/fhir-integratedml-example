@@ -16,7 +16,6 @@ COPY  src src
 COPY data/fhir fhirdata
 COPY data/train traindata
 COPY iris.script /tmp/iris.script
-COPY fhirUI /usr/irissys/csp/user/fhirUI
 
 # run iris and initial 
 RUN iris start IRIS \
