@@ -36,7 +36,8 @@ Method Execute(pRecordsCount As %Integer = "") As %Status
     Set ..RecordsCount = pRecordsCount
     Set rs = ..GetNoShowDataset()
     While rs.%Next() {
-        Set source = ##class(HSFHIR.X0001.S.Patient).%OpenId(rs.%Get("ID1"))
+        Set patientId = rs.%Get("ID1")
+        Set source = ##class(HSFHIR.X0001.S.Patient).%OpenId(patientId)
         $$$TOE(sc, ##class(PackageSample.NoShowDTL).Transform(source, .target))
         $$$TOE(sc, target.%Save())
     }
