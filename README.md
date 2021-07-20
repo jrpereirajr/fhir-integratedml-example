@@ -1,4 +1,4 @@
-# fhir-intergratedml-example (🚧 -- under construction -- 🚧)
+# fhir-intergratedml-example
 An example on how to use InterSystems IRIS for Health FHIR database to perform ML models througth InterSystems IRIS IntegratedML
 
 ## Description
