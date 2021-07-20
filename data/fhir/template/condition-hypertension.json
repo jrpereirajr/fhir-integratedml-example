@@ -1,0 +1,35 @@
+{
+  "resourceType": "Condition",
+  "id": "49e6ece2-61d9-4c2b-9caf-700112874592",
+  "clinicalStatus": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+        "code": "active"
+      }
+    ]
+  },
+  "verificationStatus": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+        "code": "confirmed"
+      }
+    ]
+  },
+  "code": {
+    "coding": [
+      {
+        "system": "http://snomed.info/sct",
+        "code": "77970009",
+        "display": "Benign hypertensive heart disease without congestive heart failure (disorder)"
+      }
+    ],
+    "text": "Benign hypertensive heart disease without congestive heart failure (disorder)"
+  },
+  "subject": {
+    "reference": "urn:uuid:274f5452-2a39-44c4-a7cb-f36de467762e"
+  },
+  "onsetDateTime": "1991-09-01T15:32:17+00:00",
+  "recordedDate": "1991-09-01T15:32:17+00:00"
+}
