@@ -7,6 +7,14 @@
       <Description>An example on how to use InterSystems IRIS for Health FHIR database to perform ML models througth InterSystems IRIS IntegratedML</Description>
       <Keywords>IRIS,IRIS for Health,FHIRIntegratedML,DTL</Keywords>
       <Packaging>module</Packaging>
+      <CSPApplication
+        Url="/fhir-ml/api"
+        SourcePath="/fhir-ml/api"
+        DeployPath="{$cspdir}/fhir-ml/api"
+        ServeFiles="1"
+        Recurse="1"
+        CookiePath="/fhir-ml/api"
+       />
     </Module>
   </Document>
 </Export>

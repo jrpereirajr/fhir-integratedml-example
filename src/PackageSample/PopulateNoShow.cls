@@ -30,7 +30,7 @@ Method Populate(pRecordsCount As %Integer = "") As %Status
             Set:(pRecordsCount '= "") ..RecordsCount = pRecordsCount
             Set rs = ..GetNoShowDataset()
             While rs.%Next() {
-                Set ..CurrentNowShow = ##class(PackageSample.ObjectScript).SerializeRow(rs)
+                Set ..CurrentNowShow = ##class(PackageSample.Utils).SerializeRow(rs)
                 Do ..ProcessNoShow()
             }
         } Catch(e) {
@@ -50,8 +50,6 @@ Method GetNoShowDataset() As %SQL.IResultSet
         "*"
     ).From(
         "Data.AppointmentNoShow"
-    #; ).Where(
-    #;     "Id in (select top "_..RecordsCount_" PackageSample.PopulateNoShow_Rand("_(2*..RecordsCount)_", id) from Data.AppointmentNoShow)"
     ).Top(
         ..RecordsCount
     ).GetSQL()
@@ -99,8 +97,8 @@ Method ProcessNoShow()
     Set stream = ##class(%Stream.GlobalCharacter).%New()
     $$$TOE(sc, stream.Write(..Transaction.%ToJSON()))
 
-    Set:('$IsObject(..DataLoader)) ..DataLoader = ##class(HS.FHIRServer.Tools.DataLoader).%New("FHIRSERVER","/fhir/r4")
-    $$$TOE(sc, ..DataLoader.SubmitResourceStream(stream, "JSON", .pSentStreamSize, .pEntryCount, .pElapsed))
+    Set:('$IsObject(..DataLoader)) ..DataLoader = ##class(PackageSample.DataLoader).%New("FHIRSERVER","/fhir/r4")
+    $$$TOE(sc, ..DataLoader.MySubmitResourceStream(stream, "JSON"))
 }
 
 Method GetJSONFromFile(pFile As %String) As %DynamicAbstractObject

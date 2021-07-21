@@ -1,4 +1,4 @@
-Class PackageSample.ObjectScript
+Class PackageSample.Utils
 {
 
 ClassMethod SerializeRow(pInput As %SQL.IResultSet) As %DynamicObject

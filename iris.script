@@ -1,6 +1,14 @@
 zn "%SYS"
 Do ##class(Security.Users).UnExpireUserPasswords("*")
 
+// creates a web app for fhir-ml api
+set props("AutheEnabled") = 64
+set props("NameSpace") = "FHIRSERVER"
+set props("IsNameSpaceDefault") = 0
+set props("DispatchClass") = "PackageSample.Dispatch"
+set props("MatchRoles")=":%All"
+zw ##class(Security.Applications).Create("/fhir-ml/api" , .props)
+
 zn "HSLIB"
 set namespace="FHIRSERVER"
 Set appKey = "/fhir/r4"
