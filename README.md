@@ -11,18 +11,18 @@ Some potential applications for ideas presented in this project:
 ## Demonstration
 In order to demonstrate the project concept, a appointment no-show prediction model was set up.
 
-First, a training dataset was used to generate synthetic FHIR resources. This dataset has information about patients, conditions, appointments and reminders sent to patients - represented by different FHIR resources. This step emulates a true FHIR database, which no-show prediction could be applied. This is done by this command (which is already executed in instalation script, so you don't need to run it again):
+First, a training dataset was used to generate synthetic FHIR resources. This dataset has information about patients, conditions, appointments and reminders sent to patients - represented by different FHIR resources. This step emulates a true FHIR database, in which no-show prediction could be applied. This is done by this command (which is already executed in installation script, so you don't need to run it again):
 
 ```objectscript
 Write "Generating FHIR data based on training dataset...",!
 ZWrite ##class(PackageSample.PopulateNoShow).%New().Populate(2000)
 ```
 
-With the FHIR database ready to use, data need to be transformed by combining the FHIR resources which are relevant to the problem, into a single table. Such FHIR combination is done by using this [DTL transformations](https://github.com/jrpereirajr/fhir-integratedml-example/blob/main/src/PackageSample/NoShowDTL.cls):
+With the FHIR database ready to use, data needs to be transformed by combining the FHIR resources which are relevant to the problem, into a single table. Such FHIR combination is done by using this [DTL transformations](https://github.com/jrpereirajr/fhir-integratedml-example/blob/main/src/PackageSample/NoShowDTL.cls):
 
-![DTL sample](https://raw.githubusercontent.com/diashenrique/iris-fhir-portal/master/img/formloaded_badges.png)
+![DTL sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/7mAtWpsjz5.png)
 
-As DTL could be exported/imported, it's possible to share ML models applied on FHIR data. This transformations also could be extended by another team if necessary.
+As DTL could be exported/imported, it's possible to share ML models applied on FHIR data. These transformations also could be extended by another team if necessary.
 
 Such DTL could be invoked by this command (which is also executed by installation script):
 
@@ -31,7 +31,7 @@ Set source = ##class(HSFHIR.X0001.S.Patient).%OpenId(patientId)
 $$$TOE(sc, ##class(PackageSample.NoShowDTL).Transform(source, .target))
 ```
 
-After applying the DTL trasnformation, FHIR resources are mapped to a single row, creating a table which could be used to train a ML model for no-show prediction. Run this command to train the no-show model:
+After applying the DTL transformation, FHIR resources are mapped to a single row, creating a table which could be used to train a ML model for no-show prediction. Run this command to train the no-show model:
 
 ```objectscript
 Do ##class(PackageSample.Utils).TrainNoShowModel()
@@ -40,14 +40,14 @@ Do ##class(PackageSample.Utils).TrainNoShowModel()
 Or, you also can follow these steps to try each sql statement by yourself:
 
 ```sql
--- create the trainning dataset
+-- create the training dataset
 CREATE OR REPLACE VIEW PackageSample.NoShowMLRowTraining AS SELECT * FROM PackageSample.NoShowMLRow WHERE ID < 1800
 -- create the testing dataset
 CREATE OR REPLACE VIEW PackageSample.NoShowMLRowTest AS SELECT * FROM PackageSample.NoShowMLRow WHERE ID >= 1800
 
 -- avoid errors in CREATE MODEL command; ignore any error here
 DROP MODEL NoShowModel
--- creates a IntegratedML model for predinction Noshow column based on other ones, using the PackageSample.NoShowMLRowTraining dataset for tranning step; seed parameter here is to ensure results reproducibility
+-- creates an IntegratedML model for predinction Noshow column based on other ones, using the PackageSample.NoShowMLRowTraining dataset for tranning step; seed parameter here is to ensure results reproducibility
 CREATE MODEL NoShowModel PREDICTING (Noshow) FROM PackageSample.NoShowMLRowTraining USING {"seed": 6}
 -- trains the model, as set up in CREATE MODEL command
 TRAIN MODEL NoShowModel
@@ -61,9 +61,9 @@ VALIDATE MODEL NoShowModel FROM PackageSample.NoShowMLRowTest
 SELECT * FROM INFORMATION_SCHEMA.ML_VALIDATION_METRICS
 ```
 
-The same transformation could be applied to transform FHIR resources came from external systems, througth a REST API for instance (chekcout the [code](https://github.com/jrpereirajr/fhir-integratedml-example/blob/main/src/PackageSample/Dispatch.cls)):
+The same transformation could be applied to transform FHIR resources came from external systems, through a REST API for instance (checkout the [code](https://github.com/jrpereirajr/fhir-integratedml-example/blob/main/src/PackageSample/Dispatch.cls)):
 
-![API sample](https://raw.githubusercontent.com/diashenrique/iris-fhir-portal/master/img/formloaded_badges.png)
+![API sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/rUdnZR3LMp.gif)
 
 ## Team
 - [José Roberto Pereira Junior](https://github.com/jrpereirajr)
