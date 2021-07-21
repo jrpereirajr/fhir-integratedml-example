@@ -68,6 +68,10 @@ VALIDATE MODEL NoShowModel FROM PackageSample.NoShowMLRowTest
 SELECT * FROM INFORMATION_SCHEMA.ML_VALIDATION_METRICS
 ```
 
+The last SQL statement may show you the classification performance parameters:
+
+![Model performance parameters](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/G6786RVu7j.png)
+
 The same transformation could be applied to transform FHIR resources came from external systems, through a REST API for instance (checkout the [code](https://github.com/jrpereirajr/fhir-integratedml-example/blob/main/src/PackageSample/Dispatch.cls)):
 
 ![API video sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/rUdnZR3LMp.gif)
