@@ -65,7 +65,7 @@ The same transformation could be applied to transform FHIR resources came from e
 
 ![API video sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/rUdnZR3LMp.gif)
 
-![API sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/8b9aPxKQHB.png)
+![API sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/8b9aPxKQHB1.png)
 
 ## Team
 - [José Roberto Pereira Junior](https://github.com/jrpereirajr)
