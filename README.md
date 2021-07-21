@@ -69,6 +69,21 @@ The same transformation could be applied to transform FHIR resources came from e
 
 ![API sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/8b9aPxKQHB1.png)
 
+## Installation 
+
+Clone/git pull the repo into any local directory
+
+```
+$ git clone https://github.com/jrpereirajr/fhir-integratedml-example.git
+```
+
+Open the terminal in this directory and run:
+
+```
+$ cd fhir-integratedml-example
+$ docker-compose up -d
+```
+
 ## Team
 - [José Roberto Pereira Junior](https://github.com/jrpereirajr)
 - [Henrique Gonçalves Dias](https://github.com/diashenrique/)
