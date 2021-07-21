@@ -1,6 +1,11 @@
 # fhir-intergratedml-example
 An example on how to use InterSystems IRIS for Health FHIR database to perform ML models througth InterSystems IRIS IntegratedML
 
+  * [Description](#description)
+  * [Demonstration](#demonstration)
+  * [Installation](#installation)
+  * [Team](#team)
+
 ## Description
 IntegratedML is a great feature for train/test and deploy ML models. FHIR is a powerful standard for health information interoperability. This project aims to show how to use IRIS/IRIS for Health tools, like DTL transformations to prepare FHIR data for applying ML models in IntegratedML.
 Some potential applications for ideas presented in this project:
@@ -8,7 +13,7 @@ Some potential applications for ideas presented in this project:
  - Use DTL transformations for normalize FHIR messages and publish ML models as services
  - Create a kind of models + transformations rules repository for use within any FHIR dataset
  
-![Idea diagram](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/diagram1.png)
+![Idea diagram](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/diagram1.1.png)
 
 ## Demonstration
 In order to demonstrate the project concept, a appointment no-show prediction model was set up.
