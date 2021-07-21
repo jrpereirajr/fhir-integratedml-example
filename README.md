@@ -7,6 +7,8 @@ Some potential applications for ideas presented in this project:
  - Reuse/extend DTL transformations in other FHIR databases for custom ML models
  - Use DTL transformations for normalize FHIR messages and publish ML models as services
  - Create a kind of models + transformations rules repository for use within any FHIR dataset
+ 
+![Idea diagram](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/diagram1.png)
 
 ## Demonstration
 In order to demonstrate the project concept, a appointment no-show prediction model was set up.
@@ -66,6 +68,21 @@ The same transformation could be applied to transform FHIR resources came from e
 ![API video sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/rUdnZR3LMp.gif)
 
 ![API sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/8b9aPxKQHB1.png)
+
+## Installation 
+
+Clone/git pull the repo into any local directory
+
+```
+$ git clone https://github.com/jrpereirajr/fhir-integratedml-example.git
+```
+
+Open the terminal in this directory and run:
+
+```
+$ cd fhir-integratedml-example
+$ docker-compose up -d
+```
 
 ## Team
 - [José Roberto Pereira Junior](https://github.com/jrpereirajr)
