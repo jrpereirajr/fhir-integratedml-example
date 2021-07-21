@@ -6,20 +6,23 @@ IntegratedML is a great feature for train/test and deploy ML models. FHIR is a p
 Some potential applications for ideas presented in this project:
  - Reuse/extend DTL transformations in other FHIR databases for custom ML models
  - Use DTL transformations for normalize FHIR messages and publish ML models as services
+ - Create a kind of models + transformations rules repository for use within any FHIR dataset
 
 ## Demonstration
 In order to demonstrate the project concept, a appointment no-show prediction model was set up.
 
-First, a training dataset was used to generate syntetic FHIR resources. This dataset has information about patients, conditions, appointments and reminders sent to patients - represented by different FHIR resources. This step emulates a true FHIR database, where no-show prediction could be applied. This is done by this command (which is already executed in instalation script, so you don't need to run it again):
+First, a training dataset was used to generate synthetic FHIR resources. This dataset has information about patients, conditions, appointments and reminders sent to patients - represented by different FHIR resources. This step emulates a true FHIR database, which no-show prediction could be applied. This is done by this command (which is already executed in instalation script, so you don't need to run it again):
 
 ```objectscript
 Write "Generating FHIR data based on training dataset...",!
 ZWrite ##class(PackageSample.PopulateNoShow).%New().Populate(2000)
 ```
 
-With the FHIR database ready to use, data need to be transformed by combining the FHIR resources which are relevant to the problem, into a single table. Such FHIR combination is done by using this [DTL transformations](todo: DTL code link):
+With the FHIR database ready to use, data need to be transformed by combining the FHIR resources which are relevant to the problem, into a single table. Such FHIR combination is done by using this [DTL transformations](https://github.com/jrpereirajr/fhir-integratedml-example/blob/main/src/PackageSample/NoShowDTL.cls):
 
-todo: DTL image
+![DTL sample](https://raw.githubusercontent.com/diashenrique/iris-fhir-portal/master/img/formloaded_badges.png)
+
+As DTL could be exported/imported, it's possible to share ML models applied on FHIR data. This transformations also could be extended by another team if necessary.
 
 Such DTL could be invoked by this command (which is also executed by installation script):
 
@@ -28,7 +31,13 @@ Set source = ##class(HSFHIR.X0001.S.Patient).%OpenId(patientId)
 $$$TOE(sc, ##class(PackageSample.NoShowDTL).Transform(source, .target))
 ```
 
-After applying the DTL trasnformation, FHIR resources are mapped to a single row, creating a table which could be used to train a ML model for no-show prediction. Follow these steps to see the ML model creation:
+After applying the DTL trasnformation, FHIR resources are mapped to a single row, creating a table which could be used to train a ML model for no-show prediction. Run this command to train the no-show model:
+
+```objectscript
+Do ##class(PackageSample.Utils).TrainNoShowModel()
+```
+
+Or, you also can follow these steps to try each sql statement by yourself:
 
 ```sql
 -- create the trainning dataset
@@ -52,13 +61,9 @@ VALIDATE MODEL NoShowModel FROM PackageSample.NoShowMLRowTest
 SELECT * FROM INFORMATION_SCHEMA.ML_VALIDATION_METRICS
 ```
 
-The same transformation could be applied to transform FHIR resources came from external systems, througth a REST API for instance.
+The same transformation could be applied to transform FHIR resources came from external systems, througth a REST API for instance (chekcout the [code](https://github.com/jrpereirajr/fhir-integratedml-example/blob/main/src/PackageSample/Dispatch.cls)):
 
-todo: 
-
-As DTL could be exported/imported, it's possible to share ML models applied on FHIR data. This transformations also could be extended by another team if necessary.
-
-todo:
+![API sample](https://raw.githubusercontent.com/diashenrique/iris-fhir-portal/master/img/formloaded_badges.png)
 
 ## Team
 - [José Roberto Pereira Junior](https://github.com/jrpereirajr)
