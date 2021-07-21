@@ -63,7 +63,9 @@ SELECT * FROM INFORMATION_SCHEMA.ML_VALIDATION_METRICS
 
 The same transformation could be applied to transform FHIR resources came from external systems, through a REST API for instance (checkout the [code](https://github.com/jrpereirajr/fhir-integratedml-example/blob/main/src/PackageSample/Dispatch.cls)):
 
-![API sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/rUdnZR3LMp.gif)
+![API video sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/rUdnZR3LMp.gif)
+
+![API sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/8b9aPxKQHB.png)
 
 ## Team
 - [José Roberto Pereira Junior](https://github.com/jrpereirajr)
