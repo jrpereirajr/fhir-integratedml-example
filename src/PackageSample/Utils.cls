@@ -30,7 +30,12 @@ ClassMethod TrainNoShowModel()
     Set sql($I(sql)) = "SELECT * FROM INFORMATION_SCHEMA.ML_VALIDATION_METRICS"
     Set idx = $O(sql(""))
     While idx '= "" {
-        Do ##class(%SQL.Statement).%ExecDirect(,sql(idx)).%Display()
+        Try {
+            Do ##class(%SQL.Statement).%ExecDirect(,sql(idx)).%Display()
+            Write !
+        } Catch(e) {
+            zw e
+        }
         Set idx = $O(sql(idx))
     }
 }
