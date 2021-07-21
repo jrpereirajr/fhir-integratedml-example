@@ -20,7 +20,7 @@ ZWrite ##class(PackageSample.PopulateNoShow).%New().Populate(2000)
 
 With the FHIR database ready to use, data need to be transformed by combining the FHIR resources which are relevant to the problem, into a single table. Such FHIR combination is done by using this [DTL transformations](https://github.com/jrpereirajr/fhir-integratedml-example/blob/main/src/PackageSample/NoShowDTL.cls):
 
-![DTL sample](https://raw.githubusercontent.com/diashenrique/iris-fhir-portal/master/img/formloaded_badges.png)
+![DTL sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/7mAtWpsjz5.png)
 
 As DTL could be exported/imported, it's possible to share ML models applied on FHIR data. This transformations also could be extended by another team if necessary.
 
@@ -63,7 +63,7 @@ SELECT * FROM INFORMATION_SCHEMA.ML_VALIDATION_METRICS
 
 The same transformation could be applied to transform FHIR resources came from external systems, througth a REST API for instance (chekcout the [code](https://github.com/jrpereirajr/fhir-integratedml-example/blob/main/src/PackageSample/Dispatch.cls)):
 
-![API sample](https://raw.githubusercontent.com/diashenrique/iris-fhir-portal/master/img/formloaded_badges.png)
+![API sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/rUdnZR3LMp.gif)
 
 ## Team
 - [José Roberto Pereira Junior](https://github.com/jrpereirajr)
