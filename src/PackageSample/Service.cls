@@ -14,9 +14,14 @@ Method %OnNew() As %Status
 Method PredictNoShow() As %DynamicAbstractObject
 {
     Set fhirServerResponse = ..DAO.SaveFHIRResource(..FHIRBundle)
-    Set patientKey = ..GetPatientKeyFromResponse(fhirServerResponse)
-    Set patient = ##class(HSFHIR.X0001.S.Patient).KeyIdxOpen(patientKey)
-    $$$TOE(sc, ##class(PackageSample.NoShowDTL).Transform(patient, .noShowRow))
+    Try {
+        Set patientKey = ..GetPatientKeyFromResponse(fhirServerResponse)
+        Set patient = ##class(HSFHIR.X0001.S.Patient).KeyIdxOpen(patientKey)
+        $$$TOE(sc, ##class(PackageSample.NoShowDTL).Transform(patient, .noShowRow))
+    } Catch(e) {
+        Do ##class(HSFHIR.X0001.S.Patient).%DeleteId(patient.%Id())
+        Throw e
+    }
     $$$TOE(sc, ##class(HSFHIR.X0001.S.Patient).%DeleteId(patient.%Id()))
 
     Set prediction = ..DAO.ExecuteNoShowPrediction(noShowRow)

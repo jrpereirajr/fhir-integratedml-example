@@ -41,6 +41,9 @@ Method ExecuteNoShowPrediction(pNoShowRow As PackageSample.NoShowMLRow) As %Dyna
     $$$TOE(sc, pNoShowRow.%Save())
     Set pNoShowRowId = pNoShowRow.%Id()
     Set rs = ##class(%SQL.Statement).%ExecDirect(, sql.GetSQL(), pNoShowRowId)
+    If ((rs.%SQLCODE '= 0) && (rs.%SQLCODE '= 100)) {
+        Throw ##class(%Exception.SQL).CreateFromSQLCODE(rs.%SQLCODE, rs.%Message)
+    }
     If (rs.%Next()) {
         Set prediction = ##class(PackageSample.Utils).SerializeRow(rs)
     }

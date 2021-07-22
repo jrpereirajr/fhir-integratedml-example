@@ -16,6 +16,7 @@ ClassMethod PredictNoShow() As %Status
     Set service = ##class(PackageSample.Service).%New()
     Set service.FHIRBundle = %request.Content
     Set prediction = service.PredictNoShow()
+    Throw:('$IsObject(prediction)) ##class(%Exception.General).%New("Model execution fail")
     Write prediction.%ToJSON()
 
     Return sc
