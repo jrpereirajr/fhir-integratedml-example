@@ -13,12 +13,6 @@ Property PatientEntry As %DynamicAbstractObject [ Private ];
 
 Property DataLoader As HS.FHIRServer.Tools.DataLoader [ Private ];
 
-/// https://www.hl7.org/fhir/patient-example.json
-/// https://www.hl7.org/fhir/appointment-example.json
-/// https://www.hl7.org/FHIR/communication-example.json
-/// http://hl7.org/fhir/us/mcode/2021May/Condition-us-core-condition-hypertension-jenny-m.json
-/// https://github.com/smart-on-fhir/custom-sample-data/blob/master/fhir-resources/diabetes.json
-/// iconv -f UTF-8 -t ISO_8859-1 -o /tmp/appointment-noshows2.csv /tmp/appointment-noshows.csv
 Method Populate(pRecordsCount As %Integer = "") As %Status
 {
     Set sc = $$$OK
