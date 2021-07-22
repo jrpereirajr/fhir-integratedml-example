@@ -3,7 +3,6 @@ Class PackageSample.FHIRNoShowETL Extends %RegisteredObject
 
 Property RecordsCount As %Integer [ InitialExpression = 10 ];
 
-/// d ##class(PackageSample.FHIRNoShowETL).%New().Execute()
 Method Execute(pRecordsCount As %Integer = "") As %Status
 {
     Set sc = $$$OK
