@@ -4,6 +4,7 @@ An example on how to use InterSystems IRIS for Health FHIR database to perform M
   * [Description](#description)
   * [Demonstration](#demonstration)
   * [Installation](#installation)
+  * [Credits](#credits)
   * [Team](#team)
 
 ## Description
@@ -126,6 +127,11 @@ Open the terminal in this directory and run:
 $ cd fhir-integratedml-example
 $ docker-compose up -d
 ```
+
+## Credits
+FHIR resources used as templates: http://hl7.org/fhir/
+Dataset for no show model training: [IntegratedML template](https://raw.githubusercontent.com/intersystems-community/integratedml-demo-template/master/iris-aa-server/data/appointment-noshows.csv)
+Dataset for heart failure model training: [kaggle](https://www.kaggle.com/andrewmvd/heart-failure-clinical-data)
 
 ## Team
 - [José Roberto Pereira Junior](https://github.com/jrpereirajr)
