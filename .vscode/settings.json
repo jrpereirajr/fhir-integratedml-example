@@ -15,7 +15,8 @@
       },
       "links": {
         "FHIR server test": "http://localhost:${port}/fhir/r4/metadata",
-        "IRIS portal": "http://localhost:${port}/csp/sys/UtilHome.csp"
+        "IRIS portal": "http://localhost:${port}/csp/sys/UtilHome.csp",
+        "Swagger": "http://localhost:32783/swagger-ui/index.html?url=/fhir-ml/api/_spec"
       }
     }
 

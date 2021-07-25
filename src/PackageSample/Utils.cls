@@ -40,4 +40,28 @@ ClassMethod TrainNoShowModel()
     }
 }
 
+ClassMethod TrainHeartFailureModel()
+{
+    Set sql = ""
+    Set sql($I(sql)) = "CREATE OR REPLACE VIEW PackageSample.HeartFailureMLRowTraining AS SELECT DEATHEVENT,age,anaemia,creatininephosphokinase,diabetes,ejectionfraction,highbloodpressure,platelets,serumcreatinine,serumsodium,sex,smoking,followuptime FROM PackageSample.HeartFailureMLRow WHERE ID < 200"
+    Set sql($I(sql)) = "CREATE OR REPLACE VIEW PackageSample.HeartFailureMLRowTest AS SELECT DEATHEVENT,age,anaemia,creatininephosphokinase,diabetes,ejectionfraction,highbloodpressure,platelets,serumcreatinine,serumsodium,sex,smoking,followuptime FROM PackageSample.HeartFailureMLRow WHERE ID >= 200"
+    Set sql($I(sql)) = "DROP MODEL HeartFailureModel"
+    Set sql($I(sql)) = "CREATE MODEL HeartFailureModel PREDICTING (DEATHEVENT) FROM PackageSample.HeartFailureMLRowTraining USING {""seed"": 6}"
+    Set sql($I(sql)) = "TRAIN MODEL HeartFailureModel"
+    Set sql($I(sql)) = "SELECT * FROM INFORMATION_SCHEMA.ML_TRAINED_MODELS"
+    Set sql($I(sql)) = "SELECT top 10 PREDICT(HeartFailureModel) AS PredictedHeartFailure, DEATHEVENT AS ActualHeartFailure FROM PackageSample.HeartFailureMLRowTest"
+    Set sql($I(sql)) = "VALIDATE MODEL HeartFailureModel FROM PackageSample.HeartFailureMLRowTest"
+    Set sql($I(sql)) = "SELECT * FROM INFORMATION_SCHEMA.ML_VALIDATION_METRICS"
+    Set idx = $O(sql(""))
+    While idx '= "" {
+        Try {
+            Do ##class(%SQL.Statement).%ExecDirect(,sql(idx)).%Display()
+            Write !
+        } Catch(e) {
+            zw e
+        }
+        Set idx = $O(sql(idx))
+    }
+}
+
 }

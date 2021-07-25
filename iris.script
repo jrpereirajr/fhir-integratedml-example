@@ -31,15 +31,31 @@ set config = strategy.GetServiceConfigData()
 set config.DebugMode = 4
 do strategy.SaveServiceConfigData(config)
 
-do $System.OBJ.LoadDir("/opt/irisapp/src","ck",,1)
 zpm "install csvgen"
 zpm "install sqlbuilder"
+zpm "install swagger-ui"
+do $System.OBJ.LoadDir("/opt/irisapp/src","ck",,1)
 
-Write "Importing no-show training dataset...",!
-zw ##class(community.csvgen).Generate("/opt/irisapp/traindata/appointment-noshows.csv", ",", "Data.AppointmentNoShow","Gender VARCHAR(250),ScheduledDay TIMESTAMP,AppointmentDay TIMESTAMP,Age INTEGER,Neighborhood VARCHAR(250),Scholarship BIT,Hypertension BIT,Diabetes BIT,Alcoholism BIT,Handicap BIT,SMS_received BIT,Noshow BIT")
-Write "Generating FHIR data based on training dataset...",!
+Write "Importing training datasets...",!
+Do ##class(community.csvgen).Generate("/opt/irisapp/traindata/appointment-noshows.csv", ",", "Data.AppointmentNoShow","Gender VARCHAR(250),ScheduledDay TIMESTAMP,AppointmentDay TIMESTAMP,Age INTEGER,Neighborhood VARCHAR(250),Scholarship BIT,Hypertension BIT,Diabetes BIT,Alcoholism BIT,Handicap BIT,SMS_received BIT,Noshow BIT")
+Do ##class(community.csvgen).Generate("/opt/irisapp/traindata/heart_failure_clinical_records_dataset.csv", ",", "Data.HeartFailure")
+Set param = ##class(%ParameterDefinition).%New("Data.HeartFailure:BASEDATE")
+Set param.Default = +$Now()
+Set param.Deprecated = 0
+Set param.Final = 0
+Set param.Internal = 0
+Set param.Type = "%Date"
+Set sc = param.%Save()
+Throw:(sc '= 1) ##class(%Exception.StatusException).CreateFromStatus(sc)
+Do $System.OBJ.Compile("Data.HeartFailure", "ck")
+Write "Generating FHIR data based on training datasets...",!
 ZWrite ##class(PackageSample.PopulateNoShow).%New().Populate(2000)
-Write "Apllying DTL transformation on FHIR data to ML dataset generation"
-ZWrite ##class(PackageSample.FHIRNoShowETL).%New().Execute()
+ZWrite ##class(PackageSample.PopulateHeartFailure).%New().Populate(299)
+Write "Apllying DTL transformation on FHIR data to ML datasets generation"
+ZWrite ##class(PackageSample.FHIRNoShowETL).%New().Execute(2000)
+ZWrite ##class(PackageSample.FHIRHeartFailureETL).%New().Execute(299)
+Write "Training models..."
+Do ##class(PackageSample.Utils).TrainNoShowModel()
+Do ##class(PackageSample.Utils).TrainHeartFailureModel()
 
 halt

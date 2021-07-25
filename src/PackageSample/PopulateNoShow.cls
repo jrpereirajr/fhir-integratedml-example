@@ -13,6 +13,8 @@ Property PatientEntry As %DynamicAbstractObject [ Private ];
 
 Property DataLoader As HS.FHIRServer.Tools.DataLoader [ Private ];
 
+Property ResourceTemplate As array Of %DynamicAbstractObject [ Private ];
+
 Method Populate(pRecordsCount As %Integer = "") As %Status
 {
     Set sc = $$$OK
@@ -49,11 +51,6 @@ Method GetNoShowDataset() As %SQL.IResultSet
     ).GetSQL()
     #Dim rs As %SQL.ISelectResult = ##class(%SQL.Statement).%ExecDirect(.stmt, sql)
     Return rs
-}
-
-ClassMethod Rand(pMax, pVar) As %Integer [ SqlProc ]
-{
-    Return $Random(pMax) + (pVar*0) + 1
 }
 
 Method ProcessNoShow()
@@ -120,8 +117,6 @@ Method AddToTransaction(pResource As %DynamicAbstractObject) As %DynamicAbstract
     Do ..Transaction.%Get("entry").%Push(resourceEntry)
     Return resourceEntry
 }
-
-Property ResourceTemplate As array Of %DynamicAbstractObject;
 
 Method GetResourceTemplate(pFile As %String) As %DynamicAbstractObject
 {

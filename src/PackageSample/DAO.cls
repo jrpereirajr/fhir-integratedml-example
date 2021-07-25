@@ -26,7 +26,6 @@ Method SaveFHIRResource(pResource As %Stream.Object) As HS.FHIRServer.API.Data.R
 
 Method ExecuteNoShowPrediction(pNoShowRow As PackageSample.NoShowMLRow) As %DynamicAbstractObject
 {
-    Set prediction = ""
 
     Set subQuery = ##class(gen.SQLBuilder).%New(
         ).Select("*").From("PackageSample.NoShowMLRow").Where("Id = ?")
@@ -37,18 +36,39 @@ Method ExecuteNoShowPrediction(pNoShowRow As PackageSample.NoShowMLRow) As %Dyna
     ))).From(
         "("_subQuery.GetSQL()_")"
     )
+    
+    Return ..ExecutePredictionQuery(pNoShowRow, sql)
+}
 
-    $$$TOE(sc, pNoShowRow.%Save())
-    Set pNoShowRowId = pNoShowRow.%Id()
-    Set rs = ##class(%SQL.Statement).%ExecDirect(, sql.GetSQL(), pNoShowRowId)
+Method ExecuteHeartFailurePrediction(pHeartFailureRow As PackageSample.HeartFailureMLRow) As %DynamicAbstractObject
+{
+
+    Set subQuery = ##class(gen.SQLBuilder).%New(
+        ).Select("*").From("PackageSample.HeartFailureMLRow").Where("Id = ?")
+    Set sql = ##class(gen.SQLBuilder).%New().Select($LTS($LB(
+        "PREDICT(HeartFailureModel) AS predictedClass",
+        "PROBABILITY(HeartFailureModel FOR 0) AS probForClass0",
+        "PROBABILITY(HeartFailureModel FOR 1) AS ProbForClass1"
+    ))).From(
+        "("_subQuery.GetSQL()_")"
+    )
+    
+    Return ..ExecutePredictionQuery(pHeartFailureRow, sql)
+}
+
+Method ExecutePredictionQuery(pRecord As %Persistent, pSQLBuilder As gen.SQLBuilder)
+{
+    Set prediction = ""
+    $$$TOE(sc, pRecord.%Save())
+    Set pRecordId = pRecord.%Id()
+    Set rs = ##class(%SQL.Statement).%ExecDirect(, pSQLBuilder.GetSQL(), pRecordId)
     If ((rs.%SQLCODE '= 0) && (rs.%SQLCODE '= 100)) {
         Throw ##class(%Exception.SQL).CreateFromSQLCODE(rs.%SQLCODE, rs.%Message)
     }
     If (rs.%Next()) {
         Set prediction = ##class(PackageSample.Utils).SerializeRow(rs)
     }
-    $$$TOE(sc, pNoShowRow.%DeleteId(pNoShowRowId))
-    
+    $$$TOE(sc, pRecord.%DeleteId(pRecordId))
     Return prediction
 }
 

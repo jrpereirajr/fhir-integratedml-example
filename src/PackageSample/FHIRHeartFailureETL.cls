@@ -1,4 +1,4 @@
-Class PackageSample.FHIRNoShowETL Extends %RegisteredObject
+Class PackageSample.FHIRHeartFailureETL Extends %RegisteredObject
 {
 
 Property RecordsCount As %Integer [ InitialExpression = 10 ];
@@ -8,23 +8,25 @@ Method Execute(pRecordsCount As %Integer = "") As %Status
     Set sc = $$$OK
     
     Set ..RecordsCount = pRecordsCount
-    Set rs = ..GetNoShowDataset()
+    Set rs = ..GetHeartFailureDataset()
     While rs.%Next() {
         Set patientId = rs.%Get("ID1")
         Set source = ##class(HSFHIR.X0001.S.Patient).%OpenId(patientId)
-        $$$TOE(sc, ##class(PackageSample.NoShowDTL).Transform(source, .target))
+        $$$TOE(sc, ##class(PackageSample.HeartFailureDTL).Transform(source, .target))
         $$$TOE(sc, target.%Save())
     }
     
     Return sc
 }
 
-Method GetNoShowDataset() As %SQL.IResultSet
+Method GetHeartFailureDataset() As %SQL.IResultSet
 {
     Set builder = ##class(gen.SQLBuilder).%New().Select(
         "ID1"
     ).From(
         "HSFHIR_X0001_S.Patient"
+    ).Where(
+        "Id1 > 2000"
     )
     If (..RecordsCount '= "") {
         Do builder.Top(
