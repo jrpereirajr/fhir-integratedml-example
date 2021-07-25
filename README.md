@@ -2,8 +2,8 @@
 An example on how to use InterSystems IRIS for Health FHIR database to perform ML models througth InterSystems IRIS IntegratedML
 
   * [Description](#description)
-  * [Demonstration](#demonstration)
   * [Installation](#installation)
+  * [Demonstration](#demonstration)
   * [Credits](#credits)
   * [Team](#team)
 
@@ -18,6 +18,37 @@ Some potential applications for ideas presented in this project:
 
 ![Idea implemented](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/ybb74rqcoy.gif)
 
+## Installation 
+
+Clone/git pull the repo into any local directory
+
+```
+$ git clone https://github.com/jrpereirajr/fhir-integratedml-example.git
+```
+
+Open the terminal in this directory and run:
+
+```
+$ cd fhir-integratedml-example
+$ docker-compose up -d
+```
+
+### Initializing an IRIS terminal
+
+To initialize an IRIS terminal, follow these steps:
+
+In a powershell/cmd terminal run:
+
+```
+docker exec -it fhir-integratedml-example_iris_1 bash
+```
+
+In linux shell, create an IRIS session:
+
+```
+irissession iris
+```
+
 ## Demonstration
 In order to demonstrate the project concept, two models were setup:
 * An appointment no-show prediction model
@@ -25,32 +56,18 @@ In order to demonstrate the project concept, two models were setup:
 
 First, training datasets were used to generate synthetic FHIR resources. These datasets had information about patients, conditions, observations, encounters, appointments and reminders sent to patients - represented by different FHIR resources. This step emulates a true FHIR database, in which no-show and heart failure predictions could be applied. 
 
-This is done by these commands (which are already executed in installation script, so you don't need to run them again):
-
-```objectscript
-Write "Generating FHIR data based on training datasets...",!
-ZWrite ##class(PackageSample.PopulateNoShow).%New().Populate(2000)
-ZWrite ##class(PackageSample.PopulateHeartFailure).%New().Populate(299)
-```
-
 With the FHIR database ready to use, data needs to be transformed by combining the FHIR resources which are relevant to the problem, into single tables. Such FHIR combination is done by DTL transformations [NoShowDTL](https://github.com/jrpereirajr/fhir-integratedml-example/blob/main/src/PackageSample/NoShowDTL.cls) and [HeartFailureDTL](https://github.com/jrpereirajr/fhir-integratedml-example/blob/main/src/PackageSample/HeartFailureDTL.cls):
 
 ![DTL sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/7mAtWpsjz5.png)
 
 As DTL transformations could be exported/imported, it's possible to share ML models applied on FHIR data. These transformations also could be extended by another team if necessary.
 
-Such DTL transformations could be invoked by this command (which is also executed by installation script):
+After applying the DTL transformations, FHIR resources are mapped to single rows, creating tables which could be used to train ML models for no-show and heart failure predictions. These commands train the models and **must be executed manually** in order to get API services running.
+
+So, open a [IRIS terminal](#initializing-an-iris-terminal) and run:
 
 ```objectscript
-Set source = ##class(HSFHIR.X0001.S.Patient).%OpenId(patientId)
-$$$TOE(sc, ##class(PackageSample.NoShowDTL).Transform(source, .target))
-$$$TOE(sc, ##class(PackageSample.HeartFailureDTL).Transform(source, .target))
-```
-
-After applying the DTL transformations, FHIR resources are mapped to single rows, creating tables which could be used to train ML models for no-show and heart failure predictions. These commands train the models (they are executed by instalation):
-
-```objectscript
-Write "Training models..."
+ZN "FHIRSERVER"
 Do ##class(PackageSample.Utils).TrainNoShowModel()
 Do ##class(PackageSample.Utils).TrainHeartFailureModel()
 ```
@@ -112,21 +129,6 @@ The same transformation could be applied to transform FHIR resources came from e
 ![API video sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/rUdnZR3LMp.gif)
 
 ![API sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/8b9aPxKQHB1.png)
-
-## Installation 
-
-Clone/git pull the repo into any local directory
-
-```
-$ git clone https://github.com/jrpereirajr/fhir-integratedml-example.git
-```
-
-Open the terminal in this directory and run:
-
-```
-$ cd fhir-integratedml-example
-$ docker-compose up -d
-```
 
 ## Credits
 FHIR resources used as templates: http://hl7.org/fhir/
