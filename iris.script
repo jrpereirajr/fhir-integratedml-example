@@ -54,8 +54,5 @@ ZWrite ##class(PackageSample.PopulateHeartFailure).%New().Populate(299)
 Write "Apllying DTL transformation on FHIR data to ML datasets generation"
 ZWrite ##class(PackageSample.FHIRNoShowETL).%New().Execute(2000)
 ZWrite ##class(PackageSample.FHIRHeartFailureETL).%New().Execute(299)
-Write "Training models..."
-Do ##class(PackageSample.Utils).TrainNoShowModel()
-Do ##class(PackageSample.Utils).TrainHeartFailureModel()
 
 halt
