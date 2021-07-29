@@ -74,6 +74,7 @@ Do ##class(PackageSample.Utils).TrainHeartFailureModel()
 
 Or, you also can follow these steps to try each sql statement by yourself:
 
+##### No-Show model
 ```sql
 -- create the training dataset
 CREATE OR REPLACE VIEW PackageSample.NoShowMLRowTraining AS SELECT * FROM PackageSample.NoShowMLRow WHERE ID < 1800
@@ -96,6 +97,7 @@ VALIDATE MODEL NoShowModel FROM PackageSample.NoShowMLRowTest
 SELECT * FROM INFORMATION_SCHEMA.ML_VALIDATION_METRICS
 ```
 
+##### Heart failure model
 ```sql
 -- create the training dataset
 CREATE OR REPLACE VIEW PackageSample.HeartFailureMLRowTraining AS SELECT DEATHEVENT,age,anaemia,creatininephosphokinase,diabetes,ejectionfraction,highbloodpressure,platelets,serumcreatinine,serumsodium,sex,smoking,followuptime FROM PackageSample.HeartFailureMLRow WHERE ID < 200
