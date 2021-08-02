@@ -34,6 +34,7 @@ do strategy.SaveServiceConfigData(config)
 zpm "install csvgen"
 zpm "install sqlbuilder"
 zpm "install swagger-ui"
+
 do $System.OBJ.LoadDir("/opt/irisapp/src","ck",,1)
 
 Write "Importing training datasets...",!
@@ -51,8 +52,11 @@ Do $System.OBJ.Compile("Data.HeartFailure", "ck")
 Write "Generating FHIR data based on training datasets...",!
 ZWrite ##class(PackageSample.PopulateNoShow).%New().Populate(2000)
 ZWrite ##class(PackageSample.PopulateHeartFailure).%New().Populate(299)
-Write "Apllying DTL transformation on FHIR data to ML datasets generation"
+Write "Apllying DTL transformation on FHIR data to ML datasets generation..."
 ZWrite ##class(PackageSample.FHIRNoShowETL).%New().Execute(2000)
 ZWrite ##class(PackageSample.FHIRHeartFailureETL).%New().Execute(299)
+Write "Training models..." 
+Do ##class(PackageSample.Utils).TrainHeartFailureModel()
+Do ##class(PackageSample.Utils).TrainNoShowModel()
 
 halt
