@@ -4,6 +4,7 @@ An example on how to use InterSystems IRIS for Health FHIR database to perform M
   * [Description](#description)
   * [Installation](#installation)
   * [Demonstration](#demonstration)
+  * [Troubleshoots](#troubleshoots)
   * [Credits](#credits)
   * [Team](#team)
 
@@ -60,19 +61,12 @@ With the FHIR database ready to use, data needs to be transformed by combining t
 
 ![DTL sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/7mAtWpsjz5.png)
 
-As DTL transformations could be exported/imported, it's possible to share ML models applied on FHIR data. These transformations also could be extended by another team if necessary.
+As DTL transformations could be exported/imported, it's possible to share ML models applied on FHIR data. These transformations also could be extended by another teams if necessary.
 
-After applying the DTL transformations, FHIR resources are mapped to single rows, creating tables which could be used to train ML models for no-show and heart failure predictions. These commands train the models and **must be executed manually** in order to get API services running.
+After applying the DTL transformations, FHIR resources are mapped to single rows, creating tables which could be used to train ML models for no-show and heart failure predictions.
 
-So, open a [IRIS terminal](#initializing-an-iris-terminal) and run:
-
-```objectscript
-ZN "FHIRSERVER"
-Do ##class(PackageSample.Utils).TrainNoShowModel()
-Do ##class(PackageSample.Utils).TrainHeartFailureModel()
-```
-
-Or, you also can follow these steps to try each sql statement by yourself:
+In order to train and test models using IntegratedML, use the following SQL statements. 
+They are executed in installation, but you are welcome to re-execute them and try IntegratedML by yourself.
 
 ##### No-Show model
 ```sql
@@ -126,11 +120,26 @@ The last SQL statement may show you the classification performance parameters:
 
 ![Model performance parameters - heart failure model](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/hk7KEBxPyT.png)
 
+```objectscript
+ZN "FHIRSERVER"
+Do ##class(PackageSample.Utils).TrainNoShowModel()
+Do ##class(PackageSample.Utils).TrainHeartFailureModel()
+```
+
 The same transformation could be applied to transform FHIR resources came from external systems, through a REST API for instance (checkout the [code](https://github.com/jrpereirajr/fhir-integratedml-example/blob/main/src/PackageSample/Dispatch.cls)):
 
 ![API video sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/rUdnZR3LMp.gif)
 
 ![API sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/8b9aPxKQHB1.png)
+
+## Troubleshoots
+If you're getting errors on trying API requests, saying that model doesn't exist, probably something wrong happens in container creation on trainning models. Try to re-execute the trainning method. Open a [IRIS terminal](#initializing-an-iris-terminal) and run:
+
+```objectscript
+ZN "FHIRSERVER"
+Do ##class(PackageSample.Utils).TrainNoShowModel()
+Do ##class(PackageSample.Utils).TrainHeartFailureModel()
+```
 
 ## Credits
 FHIR resources used as templates: http://hl7.org/fhir/
