@@ -133,7 +133,7 @@ The same transformation could be applied to transform FHIR resources came from e
 ![API sample](https://raw.githubusercontent.com/jrpereirajr/fhir-integratedml-example/main/img/8b9aPxKQHB1.png)
 
 ## Troubleshoots
-If you're getting errors on trying API requests, saying that model doesn't exist, probably something wrong happens in container creation on trainning models. Try to re-execute the trainning method. Open a [IRIS terminal](#initializing-an-iris-terminal) and run:
+If you're getting errors on trying API requests, saying that model doesn't exist, probably something wrong happens in container creation on trainning models. Try to re-execute the trainning method. Open an [IRIS terminal](#initializing-an-iris-terminal) and run:
 
 ```objectscript
 ZN "FHIRSERVER"
