@@ -1,7 +1,20 @@
 zn "%SYS"
 Do ##class(Security.Users).UnExpireUserPasswords("*")
 
+// creates the default web app for fhirserver namespace
+Kill props
+set props("AutheEnabled") = 32
+set props("NameSpace") = "FHIRSERVER"
+set props("Enabled") = 1
+set props("IsNameSpaceDefault") = 1
+set props("DeepSeeEnabled") = 1
+set props("CookiePath") = "/csp/fhirserver/"
+set props("Path") = "/usr/irissys/csp/fhirserver/"
+set props("MatchRoles")=":%All"
+zw ##class(Security.Applications).Create("/csp/fhirserver" , .props)
+
 // creates a web app for fhir-ml api
+Kill props
 set props("AutheEnabled") = 64
 set props("NameSpace") = "FHIRSERVER"
 set props("IsNameSpaceDefault") = 0
@@ -31,32 +44,18 @@ set config = strategy.GetServiceConfigData()
 set config.DebugMode = 4
 do strategy.SaveServiceConfigData(config)
 
-zpm "install csvgen"
-zpm "install sqlbuilder"
-zpm "install swagger-ui"
+// *******
+// commented to avoid troubles with ZPM service downtimes, used local code instead
+// todo: remove after fixing zpm unavailability
+// *******
+// zpm "install csvgen"
+// "install swagger-ui"
+// *******
+// imports swagger-ui manually
+zpm "load /tmp/swagger-ui/"
 
-do $System.OBJ.LoadDir("/opt/irisapp/src","ck",,1)
+Do $System.OBJ.LoadDir("/opt/irisapp/src","ck",,1)
 
-Write "Importing training datasets...",!
-Do ##class(community.csvgen).Generate("/opt/irisapp/traindata/appointment-noshows.csv", ",", "Data.AppointmentNoShow","Gender VARCHAR(250),ScheduledDay TIMESTAMP,AppointmentDay TIMESTAMP,Age INTEGER,Neighborhood VARCHAR(250),Scholarship BIT,Hypertension BIT,Diabetes BIT,Alcoholism BIT,Handicap BIT,SMS_received BIT,Noshow BIT")
-Do ##class(community.csvgen).Generate("/opt/irisapp/traindata/heart_failure_clinical_records_dataset.csv", ",", "Data.HeartFailure")
-Set param = ##class(%ParameterDefinition).%New("Data.HeartFailure:BASEDATE")
-Set param.Default = +$Now()
-Set param.Deprecated = 0
-Set param.Final = 0
-Set param.Internal = 0
-Set param.Type = "%Date"
-Set sc = param.%Save()
-Throw:(sc '= 1) ##class(%Exception.StatusException).CreateFromStatus(sc)
-Do $System.OBJ.Compile("Data.HeartFailure", "ck")
-Write "Generating FHIR data based on training datasets...",!
-ZWrite ##class(PackageSample.PopulateNoShow).%New().Populate(2000)
-ZWrite ##class(PackageSample.PopulateHeartFailure).%New().Populate(299)
-Write "Apllying DTL transformation on FHIR data to ML datasets generation..."
-ZWrite ##class(PackageSample.FHIRNoShowETL).%New().Execute(2000)
-ZWrite ##class(PackageSample.FHIRHeartFailureETL).%New().Execute(299)
-Write "Training models..." 
-Do ##class(PackageSample.Utils).TrainHeartFailureModel()
-Do ##class(PackageSample.Utils).TrainNoShowModel()
+Do ##class(PackageSample.Utils).Install()
 
 halt

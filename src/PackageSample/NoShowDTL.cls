@@ -13,10 +13,17 @@ XData DTL [ XMLNamespace = "http://www.intersystems.com/dtl" ]
 <sql>
 <annotation>Patient appointment</annotation>
 <![CDATA[Select Top 1
+  (Select dateStart 
+  From HSFHIR_X0001_S.Schedule 
+  Where Key = (
+    Select schedule 
+    From HSFHIR_X0001_S.Slot
+    Where Key %INLIST(apt.slot)
+  )),
   "date", 
   Case status When 'noshow' Then 1 Else 0 End 
-INTO :AppointmentDate, :AppointmentNoShow 
-From HSFHIR_X0001_S.Appointment 
+INTO :AppointmentTimestamp, :ScheduledTimestamp, :AppointmentNoShow 
+From HSFHIR_X0001_S.Appointment apt
 Where FOR SOME %ELEMENT(patient) (%VALUE = :source.Key)]]></sql>
 <sql>
 <annotation>Patient hypertension condition check</annotation>
@@ -54,15 +61,18 @@ Where
   patient = :source.Key 
   And For Some %ELEMENT(category) (%VALUE = 'reminder')]]></sql>
 <code>
-<![CDATA[ Set ScheduleDay = $Replace($Replace($G(AppointmentDate, ""), "T", " "), "Z", "")]]></code>
+<![CDATA[ Set AppointmentDate = $Replace($Replace($G(AppointmentTimestamp, ""), "T", " "), "Z", "")]]></code>
+<code>
+<![CDATA[ Set ScheduleDate = $Replace($Replace($G(ScheduledTimestamp, ""), "T", " "), "Z", "")]]></code>
 <assign value='$Case(source.gender, "male":"M", "female":"F")' property='target.Gender' action='set' />
-<assign value='$Case(AppointmentDate, "":"", :$ZDateH(AppointmentDate, 3) - $ZDateH(source.birthdate, 3)) \ 365' property='target.Age' action='set' />
+<assign value='$Case(AppointmentTimestamp, "":"", :$ZDateH(AppointmentTimestamp, 3) - $ZDateH(source.birthdate, 3)) \ 365' property='target.Age' action='set' />
 <assign value='$G(ConditionHypertension, "")' property='target.Hypertension' action='set' />
 <assign value='$G(ConditionDiabetes, "")' property='target.Diabetes' action='set' />
 <assign value='$G(ConditionAlcoholism, "")' property='target.Alcoholism' action='set' />
 <assign value='$G(ConditionDisability, "")' property='target.Handicap' action='set' />
-<assign value='$ZDate($ZDateh(ScheduleDay, 3), 10)' property='target.ScheduledWeekDay' action='set' />
-<assign value='$ZDate($ZDateh(ScheduleDay, 3), 14)  \ 4' property='target.ScheduledWeek' action='set' />
+<assign value='$ZDate($ZDateh(ScheduleDate, 3), 10)' property='target.ScheduledWeekDay' action='set' />
+<assign value='$ZDate($ZDateh(ScheduleDate, 3), 14)  \ 4' property='target.ScheduledWeek' action='set' />
+<assign value='$ZDateh(ScheduleDate, 3) - $ZDateh(AppointmentDate, 3)' property='target.WaitingDays' action='set' />
 <assign value='$G(AppointmentNoShow, "")' property='target.Noshow' action='set' />
 <assign value='$G(ReminderReceived, "")' property='target.SMSreceived' action='set' />
 </transform>

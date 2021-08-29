@@ -1,44 +1,5 @@
-Class PackageSample.PopulateNoShow Extends %RegisteredObject
+Class PackageSample.PopulateNoShow Extends PackageSample.PopulateAbstract
 {
-
-Property FHIRTemplateBasePath As %String [ InitialExpression = "/opt/irisapp/fhirdata/template" ];
-
-Property RecordsCount As %Integer [ InitialExpression = 10 ];
-
-Property CurrentNowShow As %DynamicAbstractObject [ Private ];
-
-Property Transaction As %DynamicAbstractObject [ Private ];
-
-Property PatientEntry As %DynamicAbstractObject [ Private ];
-
-Property DataLoader As HS.FHIRServer.Tools.DataLoader [ Private ];
-
-Property ResourceTemplate As array Of %DynamicAbstractObject [ Private ];
-
-Method Populate(pRecordsCount As %Integer = "") As %Status
-{
-    Set sc = $$$OK
-    Try {
-        Lock +^PopulateNoShow:1
-        Throw:('$Test) ##class(%Exception.General).%New("There is another execution, can't continue...")
-        
-        Try {
-            Set:(pRecordsCount '= "") ..RecordsCount = pRecordsCount
-            Set rs = ..GetNoShowDataset()
-            While rs.%Next() {
-                Set ..CurrentNowShow = ##class(PackageSample.Utils).SerializeRow(rs)
-                Do ..ProcessNoShow()
-            }
-        } Catch(e) {
-            Set sc = e.AsStatus()
-        }
-        
-        Lock -^PopulateNoShow
-    } Catch(e) {
-        Set sc = e.AsStatus()
-    }
-    Return sc
-}
 
 Method GetNoShowDataset() As %SQL.IResultSet
 {
@@ -53,123 +14,111 @@ Method GetNoShowDataset() As %SQL.IResultSet
     Return rs
 }
 
-Method ProcessNoShow()
+Method OnProcessRecord()
 {
-    Set ..Transaction = {
-        "resourceType": "Bundle",
-        "id": "bundle-transaction",
-        "type": "transaction",
-        "entry": []
-    }
-    
     Do ..AddPatient(..FHIRTemplateBasePath_"/patient.json")
-    Do ..AddAppointment(..FHIRTemplateBasePath_"/appointment.json")
+    Do ..AddSecheduledAppointmentHelper()
     
-    If (..CurrentNowShow.Hypertension) {
+    If (..CurrentRecord.Hypertension) {
         Do ..AddCondition(..FHIRTemplateBasePath_"/condition-hypertension.json")
     }
     
-    If (..CurrentNowShow.Diabetes) {
+    If (..CurrentRecord.Diabetes) {
         Do ..AddCondition(..FHIRTemplateBasePath_"/condition-diabetes.json")
     }
     
-    If (..CurrentNowShow.Alcoholism) {
+    If (..CurrentRecord.Alcoholism) {
         Do ..AddCondition(..FHIRTemplateBasePath_"/condition-alcolholims.json")
     }
     
-    If (..CurrentNowShow.Handicap) {
+    If (..CurrentRecord.Handicap) {
         Do ..AddCondition(..FHIRTemplateBasePath_"/condition-disability.json")
     }
 
-    If (..CurrentNowShow."SMS_received") {
+    If (..CurrentRecord."SMS_received") {
         Do ..AddCommunication(..FHIRTemplateBasePath_"/communication.json")
     }
-
-    Set stream = ##class(%Stream.GlobalCharacter).%New()
-    $$$TOE(sc, stream.Write(..Transaction.%ToJSON()))
-
-    Set:('$IsObject(..DataLoader)) ..DataLoader = ##class(PackageSample.DataLoader).%New("FHIRSERVER","/fhir/r4")
-    $$$TOE(sc, ..DataLoader.MySubmitResourceStream(stream, "JSON"))
 }
 
-Method GetJSONFromFile(pFile As %String) As %DynamicAbstractObject
+Method AddSecheduledAppointmentHelper()
 {
-    Set fileStream = ##class(%FileCharacterStream).%New()
-    Set fileStream.Filename = pFile
-    Set json = ""
-    While 'fileStream.AtEnd {
-        Set json = json_fileStream.ReadLine()
+    Set appointment = ..AddAppointment(..FHIRTemplateBasePath_"/appointment.json")
+
+    Set slotResource = ..AddSlot(..FHIRTemplateBasePath_"/slot.json")
+    Set slot = slotResource.resource
+    Set appointment.slot = []
+    Do appointment.slot.%Push({
+        "reference": (slot.id)
+    })
+
+    Set scheduleResource = ..AddSchedule(..FHIRTemplateBasePath_"/schedule.json")
+    Set schedule = scheduleResource.resource
+    Set dateStart = $Piece(..CurrentRecord.ScheduledDay, " ", 1)_"T"_$Piece(..CurrentRecord.ScheduledDay, " ", 2)_"Z"
+    Set schedule.planningHorizon = {
+        "start": (dateStart),
+        "end": (dateStart)
     }
-    Return ##class(%DynamicAbstractObject).%FromJSON(json)
-}
-
-Method AddToTransaction(pResource As %DynamicAbstractObject) As %DynamicAbstractObject
-{
-    Set resourceFullUrl = "urn:uuid:"_pResource.id
-    Set resourceEntry = {
-        "fullUrl": (resourceFullUrl),
-        "resource": (pResource),
-        "request": {
-            "method": "POST",
-            "url": (pResource.resourceType)
-        }
+    Set slot.schedule = {
+        "reference": (schedule.id)
     }
-    Do ..Transaction.%Get("entry").%Push(resourceEntry)
-    Return resourceEntry
 }
 
-Method GetResourceTemplate(pFile As %String) As %DynamicAbstractObject
+Method AddPatient(pFileTemplate As %String) As %DynamicAbstractObject
 {
-    If ('$IsObject(..ResourceTemplate.GetAt(pFile))) {
-        Do ..ResourceTemplate.SetAt(..GetJSONFromFile(pFile), pFile)
-    }
-    Return ..ResourceTemplate.GetAt(pFile)
-}
-
-Method AddPatient(pFile As %String)
-{
-    Set patient = ..GetJSONFromFile(pFile)
-    Set patient.id = $ZConvert($System.Util.CreateGUID(), "L")
+    Set patient = ..CreateResource(pFileTemplate)
     Do patient.%Get("identifier").%Get(0).%Set("value", patient.id)
     Do patient.%Get("identifier").%Get(1).%Set("value", patient.id)
 
-    Set patient.gender = $Case($ZConvert(..CurrentNowShow.Gender, "U"), "M":"male", "F":"female")
-    Set patient.birthDate = $ZDate($Zdateh(..CurrentNowShow.ScheduledDay, 3) - (..CurrentNowShow.Age * 365), 3)
-    Set patient.address.%Get(0).city = ..CurrentNowShow.Neighborhood
+    Set patient.gender = $Case($ZConvert(..CurrentRecord.Gender, "U"), "M":"male", "F":"female")
+    Set patient.birthDate = $ZDate($Zdateh(..CurrentRecord.ScheduledDay, 3) - (..CurrentRecord.Age * 365), 3)
+    Set patient.address.%Get(0).city = ..CurrentRecord.Neighborhood
 
     Set ..PatientEntry = ..AddToTransaction(patient)
+    Return ..PatientEntry
 }
 
-Method AddAppointment(pFile As %String)
+Method AddAppointment(pFileTemplate As %String) As %DynamicAbstractObject
 {
-    Set appointment = ..GetJSONFromFile(pFile)
-    Set appointment.id = $ZConvert($System.Util.CreateGUID(), "L")
-    Do appointment.%Get("participant").%Get(0).%Get("actor").%Set("reference", ..PatientEntry.fullUrl)
+    Set appointment = ..CreateResource(pFileTemplate)
+    Do appointment.%Get("participant").%Get(0).%Get("actor").%Set("reference", ..PatientEntry.resource.id)
 
-    Set appointment.created = $Piece(..CurrentNowShow.AppointmentDay, " ", 1)
-    Set appointment.start = $Piece(..CurrentNowShow.ScheduledDay, " ", 1)_"T"_$Piece(..CurrentNowShow.ScheduledDay, " ", 2)_"Z"
+    Set appointment.created = $Piece(..CurrentRecord.AppointmentDay, " ", 1)
+    Set appointment.start = $Piece(..CurrentRecord.AppointmentDay, " ", 1)_"T"_$Piece(..CurrentRecord.AppointmentDay, " ", 2)_"Z"
     Set appointment.end = appointment.start
-    Set:(..CurrentNowShow.Noshow) appointment.status = "noshow"
+    Set:(..CurrentRecord.Noshow) appointment.status = "noshow"
 
     Do ..AddToTransaction(appointment)
+    Return appointment
 }
 
-Method AddCondition(pFile As %String)
+Method AddSlot(pFileTemplate As %String) As %DynamicAbstractObject
 {
-    Set condition = ..GetJSONFromFile(pFile)
-    Set condition.id = $ZConvert($System.Util.CreateGUID(), "L")
-    Do condition.%Get("subject").%Set("reference", ..PatientEntry.fullUrl)
+    Set slot = ..CreateResource(pFileTemplate)
+    Return ..AddToTransaction(slot)
+}
+
+Method AddSchedule(pFileTemplate As %String) As %DynamicAbstractObject
+{
+    Set schedule = ..CreateResource(pFileTemplate)
+    Return ..AddToTransaction(schedule)
+}
+
+Method AddCondition(pFileTemplate As %String) As %DynamicAbstractObject
+{
+    Set condition = ..CreateResource(pFileTemplate)
+    Do condition.%Get("subject").%Set("reference", ..PatientEntry.resource.id)
     Set conditionEntry = ..AddToTransaction(condition)
+    Return conditionEntry
 }
 
-Method AddCommunication(pFile As %String)
+Method AddCommunication(pFileTemplate As %String) As %DynamicAbstractObject
 {
-    Set communication = ..GetJSONFromFile(pFile)
-    Set communication.id = $ZConvert($System.Util.CreateGUID(), "L")
+    Set communication = ..CreateResource(pFileTemplate)
     Do communication.%Get("identifier").%Get(0).%Set("value", communication.id)
-    Do communication.%Get("subject").%Set("reference", ..PatientEntry.fullUrl)
-    Do communication.%Get("recipient").%Get(0).%Set("reference", ..PatientEntry.fullUrl)
+    Do communication.%Get("subject").%Set("reference", ..PatientEntry.resource.id)
+    Do communication.%Get("recipient").%Get(0).%Set("reference", ..PatientEntry.resource.id)
     Set communicationEntry = ..AddToTransaction(communication)
+    Return communicationEntry
 }
 
 }

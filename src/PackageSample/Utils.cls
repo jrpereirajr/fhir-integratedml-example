@@ -1,6 +1,10 @@
 Class PackageSample.Utils
 {
 
+Parameter NoShowDatasetLen = 2000;
+
+Parameter HeartFailureDatasetLen = 299;
+
 ClassMethod SerializeRow(pInput As %SQL.IResultSet) As %DynamicObject
 {
     Set jsonObj = {}
@@ -16,34 +20,43 @@ ClassMethod SerializeRow(pInput As %SQL.IResultSet) As %DynamicObject
     Return jsonObj
 }
 
+ClassMethod ExecuteSQL(ByRef pSQL As %String)
+{
+    Kill %objlasterror
+    Set start = $ZHorolog
+
+    Write "SQL> "_pSQL, !
+    Set rs = ##class(%SQL.Statement).%ExecDirect(, pSQL)
+    Do rs.%Display()
+    
+    Set ignoreSQLCODEList = $LB(
+        0, // no error
+        100, // no error
+        -181, // ignores Model or Trained Model not found error
+        -30, // ignores Table or view not found error
+        -201 // ignores Table or view name not unique error
+    )
+    If ('$LF(ignoreSQLCODEList, rs.%SQLCODE)) {
+        Throw ##class(%Exception.SQL).CreateFromSQLCODE(rs.%SQLCODE, rs.%Message)
+    }
+    If ($Get(%objlasterror)) {
+        Throw ##class(%Exception.StatusException).CreateFromStatus(%objlasterror)
+    }
+
+    Write !,"Time elapsed: "_($ZHorolog - start)_" sec",!
+    Write "--------",!
+}
+
 ClassMethod ExecuteSQLArray(ByRef pSQLArray)
 {
     Set idx = $O(pSQLArray(""))
     While idx '= "" {
-        Kill %objlasterror
-        Set start = $ZHorolog
-
-        Write "SQL> "_pSQLArray(idx), !
-        Set rs = ##class(%SQL.Statement).%ExecDirect(, pSQLArray(idx))
-        Do rs.%Display()
-        
-        If (rs.%SQLCODE '= 0) && (rs.%SQLCODE '= 100) {
-            If (rs.%SQLCODE '= -181) { // ignores Model or Trained Model not found error
-                Throw ##class(%Exception.SQL).CreateFromSQLCODE(rs.%SQLCODE, rs.%Message)
-            }
-        }
-        If ($Get(%objlasterror)) {
-            Throw ##class(%Exception.StatusException).CreateFromStatus(%objlasterror)
-        }
-
-        Write !,"Time elapsed: "_($ZHorolog - start)_" sec",!
-        Write "--------",!
-
+        Do ..ExecuteSQL(pSQLArray(idx))
         Set idx = $O(pSQLArray(idx))
     }
 }
 
-ClassMethod TryExecuteSQLArray(ByRef pSQLArray, pMaxAttempts As %Integer = 10)
+ClassMethod TryExecuteSQLArray(ByRef pSQLArray, pMaxAttempts As %Integer = 3)
 {
     Set attempts = 0
     While (attempts < pMaxAttempts) {
@@ -68,34 +81,78 @@ ClassMethod TryExecuteSQLArray(ByRef pSQLArray, pMaxAttempts As %Integer = 10)
 
 ClassMethod TrainNoShowModel()
 {
-    Set sql = ""
-    Set sql($I(sql)) = "CREATE OR REPLACE VIEW PackageSample.NoShowMLRowTrainingIDs AS SELECT Id FROM PackageSample.NoShowMLRow WHERE ID IN (SELECT TOP 1500 idx FROM community.randrange(1, 2001) ORDER BY randValue)"
-    Set sql($I(sql)) = "CREATE OR REPLACE VIEW PackageSample.NoShowMLRowTraining AS SELECT * FROM PackageSample.NoShowMLRow WHERE Id IN (SELECT Id FROM PackageSample.NoShowMLRowTrainingIDs)"
-    Set sql($I(sql)) = "CREATE OR REPLACE VIEW PackageSample.NoShowMLRowTest AS SELECT * FROM PackageSample.NoShowMLRow WHERE Id NOT IN (SELECT Id FROM PackageSample.NoShowMLRowTrainingIDs)"
-    Set sql($I(sql)) = "DROP MODEL NoShowModel"
-    Set sql($I(sql)) = "CREATE MODEL NoShowModel PREDICTING (Noshow) FROM PackageSample.NoShowMLRowTraining USING {""seed"": 6}"
-    Set sql($I(sql)) = "TRAIN MODEL NoShowModel"
-    Set sql($I(sql)) = "SELECT * FROM INFORMATION_SCHEMA.ML_TRAINED_MODELS"
-    Set sql($I(sql)) = "SELECT TOP 10 PREDICT(NoShowModel) AS PredictedNoshow, Noshow AS ActualNoshow FROM PackageSample.NoShowMLRowTest"
-    Set sql($I(sql)) = "VALIDATE MODEL NoShowModel FROM PackageSample.NoShowMLRowTest"
-    Set sql($I(sql)) = "SELECT * FROM INFORMATION_SCHEMA.ML_VALIDATION_METRICS"
-    Do ..TryExecuteSQLArray(.sql)
+    Set o = ##class(PackageName.MLModelHelper).%New()
+    Set o.DatasetLength = ..#NoShowDatasetLen
+    Set o.ModelName = "NoShow"
+    Set o.TargetColumn = "Noshow"
+    Do o.TrainWithCrossValidation()
 }
 
 ClassMethod TrainHeartFailureModel()
 {
+    Set o = ##class(PackageName.MLModelHelper).%New()
+    Set o.DatasetLength = ..#HeartFailureDatasetLen
+    Set o.ModelName = "HeartFailure"
+    Set o.TargetColumn = "DEATHEVENT"
+    Do o.TrainWithCrossValidation()
+}
+
+ClassMethod Install() As %Status
+{
+    Set sc = $$$OK
+
+    Write "Importing training datasets...",!
+    Do ##class(community.csvgen).Generate("/opt/irisapp/traindata/appointment-noshows.csv", ",", "Data.AppointmentNoShow","Gender VARCHAR(250),ScheduledDay TIMESTAMP,AppointmentDay TIMESTAMP,Age INTEGER,Neighborhood VARCHAR(250),Scholarship BIT,Hypertension BIT,Diabetes BIT,Alcoholism BIT,Handicap BIT,SMS_received BIT,Noshow BIT")
+    Do ##class(community.csvgen).Generate("/opt/irisapp/traindata/heart_failure_clinical_records_dataset.csv", ",", "Data.HeartFailure")
+    
+    Set param = ##class(%ParameterDefinition).%New("Data.HeartFailure:BASEDATE")
+    Set param.Default = +$Now()
+    Set param.Deprecated = 0
+    Set param.Final = 0
+    Set param.Internal = 0
+    Set param.Type = "%Date"
+    Set sc = param.%Save()
+    Throw:(sc '= 1) ##class(%Exception.StatusException).CreateFromStatus(sc)
+
+    Do $System.OBJ.Compile("Data.HeartFailure", "ck")
+    
+    Write "Generating FHIR data based on training datasets...",!
+    ZWrite ##class(PackageSample.PopulateNoShow).%New().Populate(..#NoShowDatasetLen)
+    ZWrite ##class(PackageSample.PopulateHeartFailure).%New().Populate(..#NoShowDatasetLen)
+    
+    Write "Apllying DTL transformation on FHIR data to ML datasets generation..."
+    ZWrite ##class(PackageSample.FHIRNoShowETL).%New().Execute(..#NoShowDatasetLen)
+    ZWrite ##class(PackageSample.FHIRHeartFailureETL).%New().Execute(..#NoShowDatasetLen)
+    
+    Write "Training models...", !
+    Do ##class(PackageSample.Utils).TrainNoShowModel()
+    Do ##class(PackageSample.Utils).TrainHeartFailureModel()
+
+    Write "Models: ",!
+    Do ..ExecuteSQL("SELECT * FROM INFORMATION_SCHEMA.ML_TRAINED_MODELS")
+
+    Return sc
+}
+
+ClassMethod Reinstall() As %Status
+{
+    Set sc = $$$OK
     Set sql = ""
-    Set sql($I(sql)) = "CREATE OR REPLACE VIEW PackageSample.HeartFailureMLRowTrainingIDs AS SELECT Id FROM PackageSample.HeartFailureMLRow WHERE ID IN (SELECT TOP 240 idx FROM community.randrange(1, 300) ORDER BY randValue)"
-    Set sql($I(sql)) = "CREATE OR REPLACE VIEW PackageSample.HeartFailureMLRowTraining AS SELECT * FROM PackageSample.HeartFailureMLRow WHERE Id IN (SELECT Id FROM PackageSample.HeartFailureMLRowTrainingIDs)"
-    Set sql($I(sql)) = "CREATE OR REPLACE VIEW PackageSample.HeartFailureMLRowTest AS SELECT * FROM PackageSample.HeartFailureMLRow WHERE Id NOT IN (SELECT Id FROM PackageSample.HeartFailureMLRowTrainingIDs)"
-    Set sql($I(sql)) = "DROP MODEL HeartFailureModel"
-    Set sql($I(sql)) = "CREATE MODEL HeartFailureModel PREDICTING (DEATHEVENT) FROM PackageSample.HeartFailureMLRowTraining USING {""seed"": 6}"
-    Set sql($I(sql)) = "TRAIN MODEL HeartFailureModel"
-    Set sql($I(sql)) = "SELECT * FROM INFORMATION_SCHEMA.ML_TRAINED_MODELS"
-    Set sql($I(sql)) = "SELECT TOP 10 PREDICT(HeartFailureModel) AS PredictedHeartFailure, DEATHEVENT AS ActualHeartFailure FROM (SELECT * FROM PackageSample.HeartFailureMLRowTest) WHERE %VID IN (SELECT TOP 10 idx FROM community.randrange(1, 60) ORDER BY randValue)"
-    Set sql($I(sql)) = "VALIDATE MODEL HeartFailureModel FROM PackageSample.HeartFailureMLRowTest"
-    Set sql($I(sql)) = "SELECT * FROM INFORMATION_SCHEMA.ML_VALIDATION_METRICS"
-    Do ..TryExecuteSQLArray(.sql)
+    Set sql($I(sql)) = "TRUNCATE TABLE Data.AppointmentNoShow"
+    Set sql($I(sql)) = "TRUNCATE TABLE Data.HeartFailure"
+    Set sql($I(sql)) = "TRUNCATE TABLE PackageSample.NoShowMLRow"
+    Set sql($I(sql)) = "TRUNCATE TABLE PackageSample.HeartFailureMLRow"
+    Set sql($I(sql)) = "TRUNCATE TABLE HSFHIR_X0001_S.Patient"
+    Set sql($I(sql)) = "TRUNCATE TABLE HSFHIR_X0001_S.Appointment"
+    Set sql($I(sql)) = "TRUNCATE TABLE HSFHIR_X0001_S.Slot"
+    Set sql($I(sql)) = "TRUNCATE TABLE HSFHIR_X0001_S.Schedule"
+    Set sql($I(sql)) = "TRUNCATE TABLE HSFHIR_X0001_S.Condition"
+    Set sql($I(sql)) = "TRUNCATE TABLE HSFHIR_X0001_S.Observation"
+    Set sql($I(sql)) = "TRUNCATE TABLE HSFHIR_X0001_S.Communication"
+    Set sql($I(sql)) = "TRUNCATE TABLE HSFHIR_X0001_S.Encounter"
+    Do ..ExecuteSQLArray(.sql)
+    $$$TOE(sc, ..Install())
+    Return sc
 }
 
 }

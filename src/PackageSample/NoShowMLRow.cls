@@ -7,6 +7,8 @@ Property ScheduledWeekDay As %Integer;
 
 Property ScheduledWeek As %Integer;
 
+Property WaitingDays As %Integer;
+
 Property Age As %Library.Integer;
 
 Property Hypertension As %Library.Boolean;
@@ -62,6 +64,9 @@ Storage Default
 </Value>
 <Value name="13">
 <Value>ScheduledWeek</Value>
+</Value>
+<Value name="14">
+<Value>WaitingDays</Value>
 </Value>
 </Data>
 <DataLocation>^PackageSample.NoShowMLRowD</DataLocation>

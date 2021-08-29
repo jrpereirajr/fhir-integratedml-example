@@ -21,12 +21,20 @@ Method Execute(pRecordsCount As %Integer = "") As %Status
 
 Method GetHeartFailureDataset() As %SQL.IResultSet
 {
+    Set sql = "SELECT count(*) + 1 startId FROM PackageSample.NoShowMLRow"
+    #Dim rs As %SQL.ISelectResult = ##class(%SQL.Statement).%ExecDirect(.stmt, sql)
+    If ((rs.%SQLCODE '= 0) && (rs.%SQLCODE '= 100)) {
+        Throw ##class(%Exception.SQL).CreateFromSQLCODE(rs.%SQLCODE, rs.%Message)
+    }
+    Do rs.%Next()
+    Set startId = rs.startId
+    
     Set builder = ##class(gen.SQLBuilder).%New().Select(
         "ID1"
     ).From(
         "HSFHIR_X0001_S.Patient"
     ).Where(
-        "Id1 > 2000"
+        "Id1 >= ?", startId
     )
     If (..RecordsCount '= "") {
         Do builder.Top(

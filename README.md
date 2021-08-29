@@ -34,6 +34,12 @@ $ cd fhir-integratedml-example
 $ docker-compose up -d
 ```
 
+If you'd like to have a nice log of what've happened in installation use this command:
+
+```
+$ docker-compose up -d > build-log.txt 2>&1
+```
+
 ### Initializing an IRIS terminal
 
 To initialize an IRIS terminal, follow these steps:

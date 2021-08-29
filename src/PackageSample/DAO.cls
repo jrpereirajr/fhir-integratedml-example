@@ -7,9 +7,12 @@ Property FHIRServiceType As %String [ InitialExpression = "FHIRSERVER" ];
 
 Property FHIRServiceName As %String [ InitialExpression = "/fhir/r4" ];
 
+Property ModelHelper As PackageName.MLModelHelper;
+
 Method %OnNew() As %Status
 {
     Do ..CreateDataLoader()
+    Set ..ModelHelper = ##class(PackageName.MLModelHelper).%New()
     Return $$$OK
 }
 
@@ -26,13 +29,13 @@ Method SaveFHIRResource(pResource As %Stream.Object) As HS.FHIRServer.API.Data.R
 
 Method ExecuteNoShowPrediction(pNoShowRow As PackageSample.NoShowMLRow) As %DynamicAbstractObject
 {
-
+    Set bestModel = ..ModelHelper.GetBestModel("NoShow")
     Set subQuery = ##class(gen.SQLBuilder).%New(
         ).Select("*").From("PackageSample.NoShowMLRow").Where("Id = ?")
     Set sql = ##class(gen.SQLBuilder).%New().Select($LTS($LB(
-        "PREDICT(NoShowModel) AS predictedClass",
-        "PROBABILITY(NoShowModel FOR 0) AS probForClass0",
-        "PROBABILITY(NoShowModel FOR 1) AS ProbForClass1"
+        "PREDICT("_bestModel_") AS predictedClass",
+        "PROBABILITY("_bestModel_" FOR 0) AS probForClass0",
+        "PROBABILITY("_bestModel_" FOR 1) AS ProbForClass1"
     ))).From(
         "("_subQuery.GetSQL()_")"
     )
@@ -42,13 +45,13 @@ Method ExecuteNoShowPrediction(pNoShowRow As PackageSample.NoShowMLRow) As %Dyna
 
 Method ExecuteHeartFailurePrediction(pHeartFailureRow As PackageSample.HeartFailureMLRow) As %DynamicAbstractObject
 {
-
+    Set bestModel = ..ModelHelper.GetBestModel("HeartFailure")
     Set subQuery = ##class(gen.SQLBuilder).%New(
         ).Select("*").From("PackageSample.HeartFailureMLRow").Where("Id = ?")
     Set sql = ##class(gen.SQLBuilder).%New().Select($LTS($LB(
-        "PREDICT(HeartFailureModel) AS predictedClass",
-        "PROBABILITY(HeartFailureModel FOR 0) AS probForClass0",
-        "PROBABILITY(HeartFailureModel FOR 1) AS ProbForClass1"
+        "PREDICT("_bestModel_") AS predictedClass",
+        "PROBABILITY("_bestModel_" FOR 0) AS probForClass0",
+        "PROBABILITY("_bestModel_" FOR 1) AS ProbForClass1"
     ))).From(
         "("_subQuery.GetSQL()_")"
     )

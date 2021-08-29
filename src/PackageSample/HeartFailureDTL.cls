@@ -38,7 +38,7 @@ Order By ID1 Desc]]></sql>
 <sql>
 <annotation>Get the key for last patient high blood pressure observation</annotation>
 <![CDATA[Select Case Count(*) When 0 Then 0 Else 1 End Into :ObservationSmoker
-From HSFHIR_X0001_S.Observation 
+From HSFHIR_X0001_S.Condition 
 Where 
   patient = :source.Key 
   And For Some %ELEMENT(code) (%VALUE = '77176002') 
