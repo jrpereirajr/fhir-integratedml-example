@@ -6,6 +6,7 @@ XData UrlMap [ XMLNamespace = "http://www.intersystems.com/urlmap" ]
 <Routes>
 
 <Route Url="/_spec" Method="GET" Call="SwaggerSpec" />
+<Route Url="/get-sample-noshow" Method="GET" Call="GetSampleNoShow" Cors="true"/>
 <Route Url="/predict-noshow" Method="POST" Call="PredictNoShow" Cors="true"/>
 <Route Url="/predict-heart-failure" Method="POST" Call="PredictHeartFailure" Cors="true"/>
 </Routes>
@@ -21,6 +22,18 @@ ClassMethod SwaggerSpec() As %Status
     Set swagger.host = "localhost:32783"
     Write swagger.%ToJSON()
     Return $$$OK
+}
+
+ClassMethod GetSampleNoShow() As %Status
+{
+    Set sc = $$$OK
+
+    // todo: get a sample from test dataset
+    Set id = 2001
+    Set bundle = ##class(PackageSample.CreateNoShowBundle).%New().Create(id)
+    Write bundle.%ToJSON()
+
+    Return sc
 }
 
 ClassMethod PredictNoShow() As %Status

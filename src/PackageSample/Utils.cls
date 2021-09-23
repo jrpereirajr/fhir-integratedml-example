@@ -92,7 +92,8 @@ ClassMethod TrainHeartFailureModel()
 {
     Set o = ##class(PackageName.MLModelHelper).%New()
     Set o.DatasetLength = ..#HeartFailureDatasetLen
-    Set o.ModelName = "HeartFailure"
+    #; Set o.ModelName = "HeartFailure"
+    Set o.ModelName = "HeartFailureNorm"
     Set o.TargetColumn = "DEATHEVENT"
     Do o.TrainWithCrossValidation()
 }
@@ -103,7 +104,8 @@ ClassMethod Install() As %Status
 
     Write "Importing training datasets...",!
     Do ##class(community.csvgen).Generate("/opt/irisapp/traindata/appointment-noshows.csv", ",", "Data.AppointmentNoShow","Gender VARCHAR(250),ScheduledDay TIMESTAMP,AppointmentDay TIMESTAMP,Age INTEGER,Neighborhood VARCHAR(250),Scholarship BIT,Hypertension BIT,Diabetes BIT,Alcoholism BIT,Handicap BIT,SMS_received BIT,Noshow BIT")
-    Do ##class(community.csvgen).Generate("/opt/irisapp/traindata/heart_failure_clinical_records_dataset.csv", ",", "Data.HeartFailure")
+    Do ##class(community.csvgen).Generate("/opt/irisapp/traindata/heart_failure_clinical_records_dataset.csv", ",", "Data.HeartFailure", "age INTEGER,anaemia INTEGER,creatinine_phosphokinase INTEGER,diabetes INTEGER,ejection_fraction INTEGER,high_blood_pressure INTEGER,platelets DOUBLE,serum_creatinine DOUBLE,serum_sodium INTEGER,sex INTEGER,smoking INTEGER,follow_up_time INTEGER,DEATH_EVENT INTEGER")
+    #; Do ##class(community.csvgen).Generate("/irisdev/app/jupyter-samples/heart-failure-norm.csv", ",", "PackageSample.HeartFailureNormMLRow")
     
     Set param = ##class(%ParameterDefinition).%New("Data.HeartFailure:BASEDATE")
     Set param.Default = +$Now()

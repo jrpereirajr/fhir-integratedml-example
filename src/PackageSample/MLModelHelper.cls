@@ -76,11 +76,12 @@ Method TrainWithCrossValidation() As %Status
         Set sql($I(sql)) = "DROP MODEL "_currentModelName
         Set sql($I(sql)) = 
             "CREATE MODEL "_currentModelName_" PREDICTING ("_predictingCol_") "_
+            #; "WITH (followuptime double, ejectionfraction double, serumcreatinine double) "_ //, age double, serumsodium double) "_
             "FROM PackageSample."_modelName_"MLRowTraining"
         
         // train the k-th model
         Set sql($I(sql)) = 
-            "TRAIN MODEL "_currentModelName_" USING {""seed"": 1}"
+            "TRAIN MODEL "_currentModelName //_" USING {""seed"": 1}"
         
         // validate the k-th model
         Set sql($I(sql)) = 
@@ -112,6 +113,16 @@ Method TrainWithCrossValidation() As %Status
     Set sql($I(sql)) = ..GetSQLPerformanceLastExection(modelName)
     Do ##class(PackageSample.Utils).TryExecuteSQLArray(.sql)
     Write "---------------------------", !
+
+    #; // check model performance on test dataset
+    #; Write "Perfomance on test dataset:", !
+    #; Set bestModel = ..GetBestModel(modelName_"Norm")
+    #; Kill sql
+    #; Set sql($I(sql)) = 
+    #;     "VALIDATE MODEL "_bestModel_" FROM PackageSample."_modelName_"Norm"_"MLRowTest"
+    #; Set sql($I(sql)) = ..GetSQLPerformanceLastExection(modelName_"Norm")
+    #; Do ##class(PackageSample.Utils).TryExecuteSQLArray(.sql)
+    #; Write "---------------------------", !
 
     Return sc
 }

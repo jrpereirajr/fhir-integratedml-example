@@ -15,7 +15,7 @@ Property highbloodpressure As %Library.Integer;
 
 Property platelets As %Library.Double;
 
-Property serumcreatinine As %Library.Currency;
+Property serumcreatinine As %Library.Double;
 
 Property serumsodium As %Library.Integer;
 
